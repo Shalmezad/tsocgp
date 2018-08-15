@@ -1,4 +1,5 @@
 from tsocgp.validation import Validator 
+from datetime import datetime, time,date
 
 class TimeWindowsForEarliestRequirementsValidator(Validator):
     """
@@ -17,5 +18,47 @@ class TimeWindowsForEarliestRequirementsValidator(Validator):
 
     def validate(self, problem, solution):
         errors = []
+
+        # Go through each service_intentions in the problem:
+        for service_intention in problem['service_intentions']:
+            # We need the id to refer to in the solution:
+            id = service_intention['id']
+            # Go through each of the section requirements:
+            for requirement in service_intention['section_requirements']:
+                # Get the section marker to refer to in the problem:
+                marker = requirement['section_marker']
+                # Does it have an entry_earliest?
+                if 'entry_earliest' in requirement:
+                    entry_earliest = datetime.strptime(requirement['entry_earliest'],"%H:%M:%S")
+                    # Alright, we have what it should be. What was it in the solution?
+                    for train_run in solution['train_runs']:
+                        if train_run['service_intention_id'] == id:
+                            # Alright, find it's section
+                            for section in train_run['train_run_sections']:
+                                if section['section_requirement'] == marker:
+                                    # Alright, get the entry time:
+                                    entry_time = datetime.strptime(section['entry_time'],"%H:%M:%S")
+                                    if entry_time < entry_earliest:
+                                        # FAILED!
+                                        errors.append(
+                                            self.build_error("Service ({}) section ({}) failed to meet entry earliest requirement"
+                                            .format(id, marker)))
+
+                # Does it have an exit_earliest?
+                if 'exit_earliest' in requirement:
+                    exit_earliest = datetime.strptime(requirement['exit_earliest'],"%H:%M:%S")
+                    # Alright, we have what it should be. What was it in the solution?
+                    for train_run in solution['train_runs']:
+                        if train_run['service_intention_id'] == id:
+                            # Alright, find it's section
+                            for section in train_run['train_run_sections']:
+                                if section['section_requirement'] == marker:
+                                    # Alright, get the entry time:
+                                    exit_time = datetime.strptime(section['exit_time'],"%H:%M:%S")
+                                    if exit_time < exit_earliest:
+                                        # FAILED!
+                                        errors.append(
+                                            self.build_error("Service ({}) section ({}) failed to meet exit earliest requirement"
+                                            .format(id, marker)))
 
         return errors

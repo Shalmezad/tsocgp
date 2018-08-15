@@ -1,6 +1,7 @@
 from tsocgp.validation import ProblemInstanceHashPresentValidator
 import unittest
 import json
+import os
 
 class ProblemInstanceHashPresentValidatorTests(unittest.TestCase):
     def test_good_file(self):
