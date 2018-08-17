@@ -1,5 +1,7 @@
 import argparse
 import json
+from tsocgp.util import Annotator
+from tsocgp.gp import Genome
 
 def main():
     parser = argparse.ArgumentParser(description='Attempts to schedule trains')
@@ -7,19 +9,25 @@ def main():
 
     args = parser.parse_args()
     #print(args.file)
-    data = json.load(args.file)
-    print(data.keys())
-    #['label', 'hash', 'service_intentions', 'routes', 'resources', 'parameters']
-    print(data['parameters'])
-    print(data['label']) # Needed for problem_instance_label
-    print(data['hash'])  # Needed for problem_instance_hash
-    print("-----------------------------")
-    print(data['service_intentions'])
-    print("-----------------------------")
-    print(data['routes'])
-    print("-----------------------------")
-    print(len(data['routes']))
-    print(data['routes'][0])
+    problem = json.load(args.file)
+
+    #print(data.keys())
+    ##['label', 'hash', 'service_intentions', 'routes', 'resources', 'parameters']
+    #print(data['parameters'])
+    #print(data['label']) # Needed for problem_instance_label
+    #print(data['hash'])  # Needed for problem_instance_hash
+    #print("-----------------------------")
+    #print(data['service_intentions'])
+    #print("-----------------------------")
+    #print(data['routes'])
+    #print("-----------------------------")
+    #print(len(data['routes']))
+    #print(data['routes'][0])
+
+    annotated_problem = Annotator.annotate(problem)
+    genome = Genome()
+    genome.genesis(annotated_problem)
+
 
 
 if __name__ == "__main__":

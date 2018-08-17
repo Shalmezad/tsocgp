@@ -6,17 +6,24 @@
         {
             "label": "run sample",
             "type": "shell",
-            "command": "python3 tsocgp/runner.py data/sample_scenario.json"
-        }
-        {
-            "label": "tests",
-            "type": "shell",
-            "command": "USE_SAMPLE_FILE_WHEN_TESTING=1 python3 -m unittest discover -s tests -p \"*_tests.py\"",
-            "problemMatcher": [],
+            "command": "python3 tsocgp/runner.py data/sample_scenario.json",
+            "dependsOn": ["pip install"],
 			"group": {
 				"kind": "build",
 				"isDefault": true
 			}
-        }
+        },
+        {
+            "label": "tests",
+            "type": "shell",
+            "command": "USE_SAMPLE_FILE_WHEN_TESTING=1 python3 -m unittest discover -s tests -p \"*_tests.py\"",
+            "problemMatcher": []
+        }, 
+        {
+            "label": "pip install",
+            "type": "shell",
+            "command": "pip3 install -e ./",
+            "problemMatcher": []
+        },
     ]
 }
