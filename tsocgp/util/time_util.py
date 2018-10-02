@@ -33,3 +33,16 @@ class TimeUtil(object):
         m = (duration / 60) % 60
         h = (duration / 60 / 60) % 24
         return "%02d:%02d:%02d" % (h, m, s)
+
+    
+    @staticmethod
+    def hms_to_seconds_since_midnight(hms:str):
+        """
+        Converts  HH:MM:SS to seconds since 00:00:00
+        """
+        pieces_s = hms.split(":")
+        pieces_i = list(map(int, pieces_s))
+        h = pieces_i[0]
+        m = pieces_i[1]
+        s = pieces_i[2]
+        return s + m * 60 + h * 60 * 60

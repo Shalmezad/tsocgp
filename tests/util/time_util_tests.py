@@ -42,3 +42,13 @@ class TimeUtilTests(unittest.TestCase):
         s = 720
         t = TimeUtil.seconds_since_midnight_to_hms(s)
         self.assertEqual("00:12:00", t)
+
+    def test_seconds_since_midnight_to_hms_full(self):
+        s = 73840
+        t = TimeUtil.seconds_since_midnight_to_hms(s)
+        self.assertEqual("20:30:40", t)
+
+    def test_hms_to_seconds_since_midnight_full(self):
+        t = "20:30:40"
+        s = TimeUtil.hms_to_seconds_since_midnight(t)
+        self.assertEqual(73840, s)
