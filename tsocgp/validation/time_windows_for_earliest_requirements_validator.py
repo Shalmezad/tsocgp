@@ -36,6 +36,12 @@ class TimeWindowsForEarliestRequirementsValidator(Validator):
                             # Alright, find it's section
                             for section in train_run['train_run_sections']:
                                 if section['section_requirement'] == marker:
+                                    if 'entry_time' not in section:
+                                        # TODO: See if this key is required by another rule. If so, remove this error
+                                        errors.append(
+                                            self.build_error("Service ({}) section ({}) did not have an entry_time"
+                                            .format(id, marker)))
+                                        continue
                                     # Alright, get the entry time:
                                     entry_time = datetime.strptime(section['entry_time'],"%H:%M:%S")
                                     if entry_time < entry_earliest:

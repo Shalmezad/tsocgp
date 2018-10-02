@@ -7,7 +7,6 @@ class AnnotatorTests(unittest.TestCase):
     def test_dag_generation_from_file(self):
         if bool(os.environ.get('USE_SAMPLE_FILE_WHEN_TESTING', 0)):
             problem = {}
-            solution = {}
             with open('data/sample_scenario.json') as f:
                 problem = json.load(f)
             dags = Annotator.build_dag(problem)
@@ -23,7 +22,6 @@ class AnnotatorTests(unittest.TestCase):
     def test_longest_route_from_file(self):
         if bool(os.environ.get('USE_SAMPLE_FILE_WHEN_TESTING', 0)):
             problem = {}
-            solution = {}
             with open('data/sample_scenario.json') as f:
                 problem = json.load(f)
             dags = Annotator.build_dag(problem)

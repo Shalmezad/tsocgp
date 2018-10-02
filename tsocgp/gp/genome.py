@@ -25,12 +25,16 @@ class Genome(object):
         for route in annotated_problem['routes']:
             self.chromosomes[route['id']] = Genome.build_chromosome_for_annotated_route(route)
 
+    def __hash__(self):
+        return hash(frozenset(self.chromosomes.items()))
+        #return hash(self.chromosomes)
+
     @staticmethod
     def build_chromosome_for_annotated_route(route):
         # It's annotated so:
         length = route['longest_length']
         genes = []
-        for i in range(length):
+        for _ in range(length):
             genes.append(Genome.build_gene())
         return genes
 
