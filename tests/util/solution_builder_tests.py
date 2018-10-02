@@ -16,21 +16,21 @@ class SolutionBuilderTests(unittest.TestCase):
             genome = Genome()
             genome.genesis(annotated_problem)
             solution = SolutionBuilder.build_solution(annotated_problem, genome)
-            print(solution)
+            #print(solution)
             # SHOULD PASS ALL VALIDATIONS
             # Each train scheduled:
             validator = validation.EachTrainIsScheduledValidator()
             results = validator.validate(problem, solution)
-            self.assertEqual(0, len(results), msg="An error was found: {}".format(results))
+            self.assertEqual(0, len(results), msg="An error was found: {}\n{}".format(results, solution))
             # Has problem instance hash:
             validator = validation.ProblemInstanceHashPresentValidator()
             results = validator.validate(problem, solution)
-            self.assertEqual(0, len(results), msg="An error was found: {}".format(results))
+            self.assertEqual(0, len(results), msg="An error was found: {}\n{}".format(results, solution))
             # Meets earliest requirements:
             validator = validation.TimeWindowsForEarliestRequirementsValidator()
             results = validator.validate(problem, solution)
-            self.assertEqual(0, len(results), msg="An error was found: {}".format(results))
+            self.assertEqual(0, len(results), msg="An error was found: {}\n{}".format(results, solution))
             # Meets section requirements:
             validator = validation.PassThroughAllSectionRequirementsValidator()
             results = validator.validate(problem, solution)
-            self.assertEqual(0, len(results), msg="An error was found: {}".format(results))
+            self.assertEqual(0, len(results), msg="An error was found: {}\n{}".format(results, solution))

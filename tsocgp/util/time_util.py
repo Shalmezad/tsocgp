@@ -15,7 +15,7 @@ class TimeUtil(object):
             if piece == "PT":
                 continue
             #import pdb; pdb.set_trace()
-            i_piece_str = re.sub("\D", "", piece)
+            i_piece_str = re.sub(r"\D", "", piece)
             i_piece = int(i_piece_str)
             if "M" in piece:
                 time += 60 * i_piece

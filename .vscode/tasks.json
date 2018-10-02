@@ -17,6 +17,9 @@
             "type": "shell",
             "command": "USE_SAMPLE_FILE_WHEN_TESTING=1 python3 -m unittest discover -s tests -p \"*_tests.py\"",
             "problemMatcher": [],
+            //"dependsOn": [
+            //    "pip install"
+            //],
             "group": {
                 "kind": "build",
                 "isDefault": true
