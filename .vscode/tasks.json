@@ -6,7 +6,7 @@
         {
             "label": "run sample",
             "type": "shell",
-            "command": "python3 tsocgp/runner.py data/sample_scenario.json",
+            "command": "python3 tsocgp/runner.py data/01_dummy.json",
             "dependsOn": [
                 "pip install"
             ],
@@ -29,6 +29,12 @@
             "label": "pip install",
             "type": "shell",
             "command": "pip3 install -e ./",
+            "problemMatcher": []
+        },
+        {
+            "label": "count lines",
+            "type": "shell",
+            "command": "find . -name '*.py' | xargs wc -l",
             "problemMatcher": []
         }
     ]

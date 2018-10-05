@@ -1,6 +1,10 @@
 
 import re
 class TimeUtil(object):
+    ONE_SECOND = 1
+    ONE_MINUTE = 60 * ONE_SECOND
+    ONE_HOUR = 60 * ONE_MINUTE
+
     @staticmethod
     def ddi_duration_to_seconds(duration:str):
         """

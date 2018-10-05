@@ -1,4 +1,5 @@
 import random
+from tsocgp.util import TimeUtil
 class Genome(object):
     """
     A genome consists of a dictionary of chromosomes
@@ -42,5 +43,5 @@ class Genome(object):
     def build_gene():
         gene = {}
         gene['route'] = random.random()
-        gene['delta'] = random.randint(0,10000)
+        gene['delta'] = random.randint(0, 15 * TimeUtil.ONE_MINUTE)
         return gene

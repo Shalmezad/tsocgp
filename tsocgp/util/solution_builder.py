@@ -28,85 +28,48 @@ class SolutionBuilder(object):
         # TODO: Implement hash
         #s["hash"] = hash(genome)
         s["train_runs"] = []
+        dags = SolutionBuilder.build_dag_paths_from_genome(problem, genome)
         for intention in problem["service_intentions"]:
             i = intention["id"]
             chromosome = genome.chromosomes[i]
-            train_run = SolutionBuilder.build_train_run(problem, chromosome, i)
+            train_run = SolutionBuilder.train_run_from_dag(problem, chromosome, dags[i], i)
             s["train_runs"].append(train_run)
         return s
 
+
     @staticmethod
-    def build_train_run(annotated_problem, chromosome, route_id):
+    def train_run_from_dag(annotated_problem, chromosome, dag_path, route_id):
+        # Dag_path should be the array of nodes:
         train_run = {}
         train_run["service_intention_id"] = route_id
         train_run["train_run_sections"] = []
-        # TODO: Loop over chromosome, add in pieces
-        # Alright, let's see what node we start with:
-        start_nodes = annotated_problem['start_nodes'][route_id]
-        start_node = SolutionBuilder.select_from_list(start_nodes, chromosome[0]['route'])
-        cur_node = start_node
-        next_nodes = annotated_problem['dag'][route_id][start_node]
-        current_time = 0 # Time in seconds since 00:00:00
-        # Add this:
-        #        {
-		#			 "entry_time": "08:20:00",
-		#			 "exit_time": "08:20:53",
-		#			 "route": 111,
-		#			 "route_section_id": "111#3",
-		#			 "sequence_number": 1,
-		#			 "route_path": 3,
-		#			 "section_requirement": "A"
-		#		},
-        sequence_number = int(cur_node.strip("(").strip("_beginning)"))
-        # Find the route section with this sequence...
-        route_section = SolutionBuilder.route_path_with_sequence_number(annotated_problem, route_id, sequence_number)
-
-        train_run_section = {
-            "route":route_id,
-            "route_section_id": "{}#{}".format(route_id, sequence_number),
-		    "sequence_number": 1,
-            "route_path": sequence_number
-        }
-        if "section_marker" in route_section:
-            marker = route_section["section_marker"][0]
-            train_run_section["section_requirement"] = marker
-            # There's a marker, see if we can find the entry_earliest requirement:
-            requirement = SolutionBuilder.section_requirement_with_marker(annotated_problem,route_id,marker)
-            if "entry_earliest" in requirement:
-                current_time = TimeUtil.hms_to_seconds_since_midnight(requirement["entry_earliest"])
-                train_run_section["entry_time"] = TimeUtil.seconds_since_midnight_to_hms(current_time)
-            # TODO: Code me
-        else: 
-            train_run_section["section_requirement"] = None
-        train_run["train_run_sections"].append(train_run_section)
-        # Then loop until we don't have anywhere to go
-        c_idx = 1
-        while cur_node in annotated_problem['dag'][route_id]:
-            # Move our cur_node
-            next_nodes = annotated_problem['dag'][route_id][cur_node]
-            cur_node = SolutionBuilder.select_from_list(next_nodes, chromosome[c_idx]['route'])
-            # Add it to the list
-            # TODO: Code me
-            # So, we either have a MX, a X->Y, or a X_end node...
-            temp_node = cur_node.strip("(").strip(")")
+        c_idx = 0
+        current_time = 0
+        #print(dag_path)
+        for node in dag_path:
+            temp_node = node.strip("(").strip(")")
             sequence_number = None
             m_number = None
+            # Try and parse out sequence or m_number
             if "->" in temp_node:
-                sequence_number = int(temp_node.split('->', 1)[0])
+                sequence_number = int(temp_node.split('->', 1)[1])
             elif "_end" in temp_node:
                 sequence_number = int(temp_node.strip("_end"))
+            elif "_beginning" in temp_node:
+                sequence_number = int(temp_node.strip("_beginning"))
             else:
                 m_number = temp_node
-
-            # Find the route section with this sequence...
+            # Try and find the route section:
             route_section = None
             if sequence_number:
                 route_section = SolutionBuilder.route_path_with_sequence_number(annotated_problem, route_id, sequence_number)
             else:
                 route_section = SolutionBuilder.route_path_with_alternative_name(annotated_problem, route_id, m_number)
-                sequence_number = route_section["sequence_number"]
+                if route_section:
+                    sequence_number = route_section["sequence_number"]
             if not route_section:
-                raise ValueError("Unable to find route section with node: ({})".format(cur_node))
+                raise ValueError("Unable to find route section with node: ({})".format(node))
+            # Build the train_run_section:
             train_run_section = {
                 "route":route_id,
                 "route_section_id": "{}#{}".format(route_id, sequence_number),
@@ -114,17 +77,58 @@ class SolutionBuilder(object):
                 "route_path": sequence_number
             }
             if "section_marker" in route_section:
-                train_run_section["section_requirement"] = route_section["section_marker"][0]
+                marker = route_section["section_marker"][0]
+                train_run_section["section_requirement"] = marker
+                # There's a marker, see if we can find the entry_earliest requirement:
+                requirement = SolutionBuilder.section_requirement_with_marker(annotated_problem,route_id,marker)
+                if requirement and "entry_earliest" in requirement:
+                    current_time = TimeUtil.hms_to_seconds_since_midnight(requirement["entry_earliest"])
             else: 
                 train_run_section["section_requirement"] = None
+            train_run_section["entry_time"] = TimeUtil.seconds_since_midnight_to_hms(current_time)
+            min_time = 0
+            if "minimum_running_time" in route_section:
+                min_time = TimeUtil.ddi_duration_to_seconds(route_section["minimum_running_time"])
+            current_time += min_time
+            current_time += chromosome[c_idx]['delta']
+            train_run_section["exit_time"] = TimeUtil.seconds_since_midnight_to_hms(current_time)
+            # TODO: Figure out our exit time
             train_run["train_run_sections"].append(train_run_section)
-                
-            # Shift pointers
-            c_idx = c_idx + 1
-
-
+            c_idx += 1
         return train_run
+            
 
+
+
+    @staticmethod
+    def build_dag_paths_from_genome(annotated_problem, genome):
+        paths = {}
+        for intention in annotated_problem["service_intentions"]:
+            i = intention["id"]
+            chromosome = genome.chromosomes[i]
+            paths[i] = SolutionBuilder.build_dag_path_from_chromosome(annotated_problem,chromosome,i)
+        return paths
+
+
+    @staticmethod
+    def build_dag_path_from_chromosome(annotated_problem, chromosome, route_id):
+        """
+        Given the problem, chromosome, and route_id,
+        This will figure out the path of sections the chromosome represents
+        ie: ["1_beginning","M1", "4->5", "M2", "7->8", "8->9", "9_end"]
+        """
+        path = []
+        start_nodes = annotated_problem['start_nodes'][route_id]
+        start_node = SolutionBuilder.select_from_list(start_nodes, chromosome[0]['route'])
+        path.append(start_node)
+        cur_node = start_node
+        c_idx = 1
+        while cur_node in annotated_problem['dag'][route_id]:
+            nodes = annotated_problem['dag'][route_id][cur_node]
+            cur_node = SolutionBuilder.select_from_list(nodes, chromosome[c_idx]['route'])
+            c_idx = c_idx + 1
+            path.append(cur_node)
+        return path
 
     @staticmethod
     def route_path_with_sequence_number(annotated_problem, route_id, sequence_number):

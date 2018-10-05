@@ -2,6 +2,7 @@ import argparse
 import json
 from tsocgp.util import Annotator
 from tsocgp.gp import Genome
+from tsocgp.util import SolutionBuilder
 
 def main():
     parser = argparse.ArgumentParser(description='Attempts to schedule trains')
@@ -27,6 +28,9 @@ def main():
     annotated_problem = Annotator.annotate(problem)
     genome = Genome()
     genome.genesis(annotated_problem)
+    solution = SolutionBuilder.build_solution(annotated_problem, genome)
+    with open('data/solutions/test.json', 'w') as outfile:
+        json.dump(solution, outfile)
 
 
 
